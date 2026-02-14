@@ -42,7 +42,44 @@ document.addEventListener('DOMContentLoaded', () => {
     setInterval(() => {
         saveNotesToStorage();
     }, 30000);
+
+    initMobileMenu();
 });
+
+function initMobileMenu() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const sidebar = document.querySelector('.sidebar');
+    const appContainer = document.querySelector('.app-container');
+    const navItems = document.querySelectorAll('.nav-item');
+
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            sidebar.classList.toggle('active');
+            appContainer.classList.toggle('menu-open');
+        });
+    }
+
+    // Close on click outside
+    document.addEventListener('click', (e) => {
+        if (sidebar.classList.contains('active') &&
+            !sidebar.contains(e.target) &&
+            !mobileMenuBtn.contains(e.target)) {
+            sidebar.classList.remove('active');
+            appContainer.classList.remove('menu-open');
+        }
+    });
+
+    // Close when nav item clicked
+    navItems.forEach(item => {
+        item.addEventListener('click', () => {
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+                appContainer.classList.remove('menu-open');
+            }
+        });
+    });
+}
 
 function updateDate() {
     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -166,18 +203,47 @@ function togglePinCurrent() {
 }
 
 function exportCurrentNote() {
-    const title = noteTitleInput.value.trim() || 'note';
-    const content = noteBodyInput.innerText; // Get plain text
+    const title = noteTitleInput.value.trim() || 'Untitled Note';
+    const content = noteBodyInput.innerHTML;
+    const date = document.getElementById('last-edited-info').textContent;
 
-    const blob = new Blob([content], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${title}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    // Create a temporary container for formatting the PDF content
+    const element = document.createElement('div');
+    element.className = 'pdf-content';
+
+    // Inline styles to ensure accurate PDF rendering
+    element.style.padding = '20px';
+    element.style.fontFamily = "'Inter', sans-serif";
+    element.style.color = '#2d3436';
+    element.style.lineHeight = '1.6';
+
+    // Construct the HTML content for the PDF
+    element.innerHTML = `
+        <h1 style="font-family: 'Outfit', sans-serif; font-size: 24pt; margin-bottom: 10px; color: #2d3436;">${title}</h1>
+        <div style="font-size: 10pt; color: #636e72; margin-bottom: 30px; border-bottom: 2px solid #6c5ce7; padding-bottom: 10px;">
+            ${date}
+        </div>
+        <div style="font-family: 'Merriweather', 'Inter', serif; font-size: 12pt;">
+            ${content}
+        </div>
+    `;
+
+    // PDF Options
+    const opt = {
+        margin: 1,
+        filename: `${title}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+
+    // Generate PDF
+    // Check if html2pdf is loaded
+    if (typeof html2pdf !== 'undefined') {
+        html2pdf().set(opt).from(element).save();
+    } else {
+        alert('PDF library not loaded. Please refresh the page.');
+    }
 }
 
 // --- Rendering ---
