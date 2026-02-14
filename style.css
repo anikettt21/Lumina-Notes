@@ -973,10 +973,13 @@ body {
     }
 
     .fab {
-        bottom: 2rem;
+        bottom: 5rem;
+        /* Increased to avoid overlap with mobile nav bars */
         right: 1.5rem;
         width: 60px;
         height: 60px;
+        z-index: 1000;
+        /* Ensure it's above other elements */
     }
 
     /* Mobile Modal */
