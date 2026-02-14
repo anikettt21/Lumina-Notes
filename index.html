@@ -40,19 +40,18 @@
                 </div>
 
                 <div class="nav-section">
-                    <span class="section-title">Categories</span>
-                    <button class="nav-item" data-category="Ideas">
-                        <i class="ri-lightbulb-line"></i> Ideas
-                    </button>
-                    <button class="nav-item" data-category="Study">
-                        <i class="ri-book-open-line"></i> Study
-                    </button>
-                    <button class="nav-item" data-category="Personal">
-                        <i class="ri-user-heart-line"></i> Personal
-                    </button>
-                    <button class="nav-item" data-category="Startup">
-                        <i class="ri-rocket-line"></i> Startup
-                    </button>
+                    <div
+                        style="display: flex; justify-content: space-between; align-items: center; padding-right: 10px;">
+                        <span class="section-title">Categories</span>
+                        <button id="add-category-btn"
+                            style="background: none; border: none; color: var(--accent-color); cursor: pointer; font-size: 1.2rem;"
+                            title="Add Category">
+                            <i class="ri-add-circle-line"></i>
+                        </button>
+                    </div>
+                    <div id="category-list">
+                        <!-- Categories will be injected here via JS -->
+                    </div>
                 </div>
             </nav>
 
@@ -100,6 +99,25 @@
         </main>
     </div>
 
+    <!-- Category Modal -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content glass-panel small-modal">
+            <div class="modal-header">
+                <h3>Add New Category</h3>
+                <button id="close-category-modal-btn" class="icon-btn" title="Close">
+                    <i class="ri-close-line"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="new-category-input" placeholder="Enter category name..." class="styled-input">
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-category-btn" class="secondary-btn">Cancel</button>
+                <button id="save-category-btn" class="primary-btn">Add Category</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Note Editor Modal -->
     <div id="note-modal" class="modal">
         <div class="modal-content glass-panel">
@@ -126,30 +144,25 @@
                 <div class="toolbar-group">
                     <select id="category-select">
                         <option value="Uncategorized">No Category</option>
-                        <option value="Ideas">Ideas</option>
-                        <option value="Study">Study</option>
-                        <option value="Personal">Personal</option>
-                        <option value="Startup">Startup</option>
+                        <!-- Categories injected via JS -->
                     </select>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="document.execCommand('bold', false, null)" title="Bold"><i
-                            class="ri-bold"></i></button>
-                    <button onclick="document.execCommand('italic', false, null)" title="Italic"><i
-                            class="ri-italic"></i></button>
-                    <button onclick="document.execCommand('underline', false, null)" title="Underline"><i
+                    <button class="toolbar-btn" data-command="bold" title="Bold"><i class="ri-bold"></i></button>
+                    <button class="toolbar-btn" data-command="italic" title="Italic"><i class="ri-italic"></i></button>
+                    <button class="toolbar-btn" data-command="underline" title="Underline"><i
                             class="ri-underline"></i></button>
-                    <button onclick="document.execCommand('strikeThrough', false, null)" title="Strikethrough"><i
+                    <button class="toolbar-btn" data-command="strikeThrough" title="Strikethrough"><i
                             class="ri-strikethrough"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet List"><i
+                    <button class="toolbar-btn" data-command="insertUnorderedList" title="Bullet List"><i
                             class="ri-list-unordered"></i></button>
-                    <button onclick="document.execCommand('insertOrderedList', false, null)" title="Numbered List"><i
+                    <button class="toolbar-btn" data-command="insertOrderedList" title="Numbered List"><i
                             class="ri-list-ordered"></i></button>
                 </div>
                 <div class="toolbar-group">
-                    <button onclick="document.execCommand('formatBlock', false, '<h3>')" title="Heading"><i
+                    <button class="toolbar-btn" data-command="formatBlock" data-value="H3" title="Heading"><i
                             class="ri-h-1"></i></button>
                 </div>
             </div>

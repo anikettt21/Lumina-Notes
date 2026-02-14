@@ -5,6 +5,7 @@
 
 // --- State Management ---
 let notes = [];
+let categories = [];
 let currentFilter = 'all'; // 'all', 'pinned', 'recent', 'category:XYZ'
 let currentSearchQuery = '';
 let editingNoteId = null;
@@ -33,10 +34,14 @@ const navItems = document.querySelectorAll('.nav-item');
 // --- Initialization ---
 
 document.addEventListener('DOMContentLoaded', () => {
+    loadCategories();
     loadNotes();
     loadTheme();
+    renderCategories();
     renderNotes();
     updateDate();
+    initToolbar();
+    initAddCategory();
 
     // Auto-save check every 30 seconds (optional feature)
     setInterval(() => {
@@ -97,6 +102,19 @@ function loadNotes() {
     if (savedNotes) {
         notes = JSON.parse(savedNotes);
     }
+}
+
+function loadCategories() {
+    const savedCats = localStorage.getItem('lumina_categories');
+    if (savedCats) {
+        categories = JSON.parse(savedCats);
+    } else {
+        categories = ['Ideas', 'Study', 'Personal', 'Startup'];
+    }
+}
+
+function saveCategories() {
+    localStorage.setItem('lumina_categories', JSON.stringify(categories));
 }
 
 function loadTheme() {
@@ -246,6 +264,158 @@ function exportCurrentNote() {
     }
 }
 
+// --- Categories & Toolbar ---
+
+const categoryModal = document.getElementById('category-modal');
+const newCategoryInput = document.getElementById('new-category-input');
+const saveCategoryBtn = document.getElementById('save-category-btn');
+const cancelCategoryBtn = document.getElementById('cancel-category-btn');
+const closeCategoryModalBtn = document.getElementById('close-category-modal-btn');
+
+function renderCategories() {
+    const list = document.getElementById('category-list');
+    const select = document.getElementById('category-select');
+
+    // Sidebar list
+    list.innerHTML = '';
+    categories.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'nav-item';
+        btn.dataset.category = cat;
+        if (currentFilter === `category:${cat}`) btn.classList.add('active');
+
+        // Icon mapping
+        let iconClass = 'ri-bookmark-line';
+        if (cat === 'Ideas') iconClass = 'ri-lightbulb-line';
+        else if (cat === 'Study') iconClass = 'ri-book-open-line';
+        else if (cat === 'Personal') iconClass = 'ri-user-heart-line';
+        else if (cat === 'Startup') iconClass = 'ri-rocket-line';
+        else if (cat === 'Work') iconClass = 'ri-briefcase-line';
+
+        btn.innerHTML = `<i class="${iconClass}"></i> ${cat}`;
+        list.appendChild(btn);
+    });
+
+    // Select dropdown
+    const currentVal = select.value;
+    select.innerHTML = '<option value="Uncategorized">No Category</option>';
+    categories.forEach(cat => {
+        const opt = document.createElement('option');
+        opt.value = cat;
+        opt.textContent = cat;
+        select.appendChild(opt);
+    });
+    // Restore selection if valid, primarily for editing
+    if (editingNoteId) {
+        const note = notes.find(n => n.id === editingNoteId);
+        if (note) select.value = note.category || 'Uncategorized';
+    } else {
+        select.value = currentVal; // Maintain user selection during adds if any
+    }
+}
+
+function openCategoryModal() {
+    categoryModal.style.display = 'flex';
+    categoryModal.offsetHeight; // trigger reflow
+    categoryModal.classList.add('active');
+    newCategoryInput.value = '';
+    newCategoryInput.focus();
+}
+
+function closeCategoryModal() {
+    categoryModal.classList.remove('active');
+    setTimeout(() => {
+        categoryModal.style.display = 'none';
+    }, 300);
+}
+
+function saveNewCategory() {
+    const val = newCategoryInput.value.trim();
+    if (val !== "") {
+        if (!categories.includes(val)) {
+            categories.push(val);
+            saveCategories();
+            renderCategories();
+            closeCategoryModal();
+        } else {
+            alert("Category already exists!");
+            newCategoryInput.focus();
+        }
+    } else {
+        newCategoryInput.focus();
+    }
+}
+
+function initAddCategory() {
+    const btn = document.getElementById('add-category-btn');
+    if (btn) {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            openCategoryModal();
+        });
+    }
+
+    // Modal Events
+    if (saveCategoryBtn) saveCategoryBtn.addEventListener('click', saveNewCategory);
+    if (cancelCategoryBtn) cancelCategoryBtn.addEventListener('click', closeCategoryModal);
+    if (closeCategoryModalBtn) closeCategoryModalBtn.addEventListener('click', closeCategoryModal);
+
+    // Close on outside click
+    if (categoryModal) {
+        categoryModal.addEventListener('click', (e) => {
+            if (e.target === categoryModal) closeCategoryModal();
+        });
+    }
+
+    // Enter key support
+    if (newCategoryInput) {
+        newCategoryInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') saveNewCategory();
+        });
+    }
+}
+
+function initToolbar() {
+    const btns = document.querySelectorAll('.toolbar-btn');
+    btns.forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            const cmd = btn.dataset.command;
+            const val = btn.dataset.value || null;
+
+            if (cmd === 'formatBlock') {
+                document.execCommand(cmd, false, val);
+            } else {
+                document.execCommand(cmd, false, val);
+            }
+            updateToolbarState();
+            noteBodyInput.focus();
+        });
+    });
+
+    // Check state on interaction
+    noteBodyInput.addEventListener('keyup', updateToolbarState);
+    noteBodyInput.addEventListener('mouseup', updateToolbarState);
+    noteBodyInput.addEventListener('click', updateToolbarState);
+}
+
+function updateToolbarState() {
+    const btns = document.querySelectorAll('.toolbar-btn');
+    btns.forEach(btn => {
+        const cmd = btn.dataset.command;
+        // formatBlock state check is tricky across browsers, skipping rigorous check for H tags for simplicity or implementing custom
+        if (cmd !== 'formatBlock' && cmd !== 'insertUnorderedList' && cmd !== 'insertOrderedList') {
+            try {
+                if (document.queryCommandState(cmd)) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            } catch (e) { }
+        }
+    });
+}
+
 // --- Rendering ---
 
 function renderNotes() {
@@ -388,21 +558,30 @@ themeToggleBtn.addEventListener('click', () => {
 });
 
 // Sidebar Navigation
-navItems.forEach(item => {
-    item.addEventListener('click', () => {
-        // Remove active class from all
-        navItems.forEach(nav => nav.classList.remove('active'));
-        // Add to clicked
-        item.classList.add('active');
+// Sidebar Navigation (Event Delegation)
+document.querySelector('.nav-menu').addEventListener('click', (e) => {
+    const item = e.target.closest('.nav-item');
+    if (!item) return;
 
-        if (item.dataset.filter) {
-            currentFilter = item.dataset.filter;
-        } else if (item.dataset.category) {
-            currentFilter = `category:${item.dataset.category}`;
-        }
+    // Reset all activities
+    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+    item.classList.add('active');
 
-        renderNotes();
-    });
+    if (item.dataset.filter) {
+        currentFilter = item.dataset.filter;
+    } else if (item.dataset.category) {
+        currentFilter = `category:${item.dataset.category}`;
+    }
+
+    renderNotes();
+
+    // Mobile menu closer logic integration
+    if (window.innerWidth <= 768) {
+        const sidebar = document.querySelector('.sidebar');
+        const appContainer = document.querySelector('.app-container');
+        sidebar.classList.remove('active');
+        appContainer.classList.remove('menu-open');
+    }
 });
 
 // Rich Text Shortcuts support (optional additional)
