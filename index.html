@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lumina Notebook</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@600&display=swap"
+        rel="stylesheet">
+    <!-- Remix Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@4.1.0/fonts/remixicon.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <i class="ri-booklet-line"></i>
+                <h1>Lumina</h1>
+            </div>
+
+            <nav class="nav-menu">
+                <div class="nav-section">
+                    <span class="section-title">Notebook</span>
+                    <button class="nav-item active" data-filter="all">
+                        <i class="ri-home-4-line"></i> All Notes
+                    </button>
+                    <button class="nav-item" data-filter="pinned">
+                        <i class="ri-pushpin-line"></i> Pinned
+                    </button>
+                    <button class="nav-item" data-filter="recent">
+                        <i class="ri-time-line"></i> Recently Edited
+                    </button>
+                </div>
+
+                <div class="nav-section">
+                    <span class="section-title">Categories</span>
+                    <button class="nav-item" data-category="Ideas">
+                        <i class="ri-lightbulb-line"></i> Ideas
+                    </button>
+                    <button class="nav-item" data-category="Study">
+                        <i class="ri-book-open-line"></i> Study
+                    </button>
+                    <button class="nav-item" data-category="Personal">
+                        <i class="ri-user-heart-line"></i> Personal
+                    </button>
+                    <button class="nav-item" data-category="Startup">
+                        <i class="ri-rocket-line"></i> Startup
+                    </button>
+                </div>
+            </nav>
+
+            <div class="sidebar-footer">
+                <button id="theme-toggle" class="theme-toggle-btn">
+                    <i class="ri-moon-line"></i>
+                    <span>Dark Mode</span>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-bar">
+                <div class="search-container">
+                    <i class="ri-search-line"></i>
+                    <input type="text" id="search-input" placeholder="Search notes...">
+                </div>
+                <div class="header-actions">
+                    <span id="current-date"></span>
+                    <div class="user-profile">
+                        <div class="avatar">U</div>
+                    </div>
+                </div>
+            </header>
+
+            <div class="content-wrapper">
+                <div class="notes-header">
+                    <h2 id="view-title">All Notes</h2>
+                    <span id="notes-count">0 notes</span>
+                </div>
+
+                <div id="notes-grid" class="notes-grid">
+                    <!-- Notes will be injected here via JS -->
+                </div>
+            </div>
+
+            <!-- Floating Action Button -->
+            <button id="add-note-btn" class="fab">
+                <i class="ri-add-line"></i>
+            </button>
+        </main>
+    </div>
+
+    <!-- Note Editor Modal -->
+    <div id="note-modal" class="modal">
+        <div class="modal-content glass-panel">
+            <div class="modal-header">
+                <input type="text" id="note-title-input" placeholder="Note Title" autocomplete="off">
+                <div class="modal-actions">
+                    <span id="last-edited-info">Edited just now</span>
+                    <button id="pin-note-btn" class="icon-btn" title="Pin Note">
+                        <i class="ri-pushpin-line"></i>
+                    </button>
+                    <button id="download-note-btn" class="icon-btn" title="Export as TXT">
+                        <i class="ri-download-line"></i>
+                    </button>
+                    <button id="delete-note-btn" class="icon-btn danger" title="Delete Note">
+                        <i class="ri-delete-bin-line"></i>
+                    </button>
+                    <button id="close-modal-btn" class="icon-btn" title="Close">
+                        <i class="ri-close-line"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="toolbar">
+                <div class="toolbar-group">
+                    <select id="category-select">
+                        <option value="Uncategorized">No Category</option>
+                        <option value="Ideas">Ideas</option>
+                        <option value="Study">Study</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Startup">Startup</option>
+                    </select>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="document.execCommand('bold', false, null)" title="Bold"><i
+                            class="ri-bold"></i></button>
+                    <button onclick="document.execCommand('italic', false, null)" title="Italic"><i
+                            class="ri-italic"></i></button>
+                    <button onclick="document.execCommand('underline', false, null)" title="Underline"><i
+                            class="ri-underline"></i></button>
+                    <button onclick="document.execCommand('strikeThrough', false, null)" title="Strikethrough"><i
+                            class="ri-strikethrough"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="document.execCommand('insertUnorderedList', false, null)" title="Bullet List"><i
+                            class="ri-list-unordered"></i></button>
+                    <button onclick="document.execCommand('insertOrderedList', false, null)" title="Numbered List"><i
+                            class="ri-list-ordered"></i></button>
+                </div>
+                <div class="toolbar-group">
+                    <button onclick="document.execCommand('formatBlock', false, '<h3>')" title="Heading"><i
+                            class="ri-h-1"></i></button>
+                </div>
+            </div>
+
+            <div id="note-body-input" class="editor-area" contenteditable="true"
+                placeholder="Start typing your note here..."></div>
+
+            <div class="modal-footer">
+                <div class="stats">
+                    <span id="word-count">0 words</span>
+                    <span id="char-count">0 chars</span>
+                </div>
+                <button id="save-note-btn" class="primary-btn">Save Note</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
